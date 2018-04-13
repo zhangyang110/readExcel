@@ -1,0 +1,119 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ReadExcel</title>
+</head>
+<link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="./bootstrap/js/bootstrap.min.js"></script>
+<body>
+<div class="container">
+    <select id="selectWeek" name="selectWeek" onchange="getWeekDay()">
+        <option value="0">第一周</option>
+        <option value="1">第二周</option>
+        <option value="2">第三周</option>
+        <option value="3">第四周</option>
+        <option value="4">第五周</option>
+    </select>
+    <br>
+    <select id="selectDay" name="selectDay" onchange="getWeekDay()">
+        <option value="A">周一</option>
+        <option value="C">周二</option>
+        <option value="E">周三</option>
+        <option value="G">周四</option>
+        <option value="I">周五</option>
+        <option value="K">周六</option>
+        <option value="M">周日</option>
+    </select>
+    <br>
+    <input type="file" onchange="importf(this)" id="file"/>
+    <br>
+    <textarea cols="20" rows="10" id="textArea"></textarea>
+    <br>
+    <input type="button" onClick="copy()" value="点击复制代码"/>
+</div>
+<script type="text/javascript" src="./shim.min.js"></script>
+<script type="text/javascript" src="./xlsx.full.min.js"></script>
+<script>
+    var wb;//读取完成的数据
+    var rABS = false; //是否将文件读取为二进制字符串
+    var values = [];//最终要的数组数据
+    var week = 0;//初始默认定义选取第一周的数据
+    var day = 'A';//初始默认定义选取第一天的数据，第一天就是A列。看表；
+    var weekDay = [];//初始第一周第一天的为空的
+
+    for (var m = 3; m < 100; m++) {//从每一列的第三行开始；看表
+        weekDay.push(`A${m}`)//初始进入的时候第一周第一天有100条数据，查询A列，从地三行到地100行的数据；放入数组
+    }
+
+    function getWeekDay() {//该方法为获取哪一周哪一天的列表，某天的数据为 一列默认为从第三行到地100行；
+        var selectWeek = document.getElementById('selectWeek');//基本操作啦
+        var selectDay = document.getElementById('selectDay');//基操啦！
+        week = selectWeek.value;//获取人工选择的是哪一周
+        day = selectDay.value;//获取人工选择的是哪一天
+        weekDay = [];//如果重复操作该页面，为了防止数据增加。所以要初始化该数组；
+        for (var j = 3; j < 100; j++) {
+            weekDay.push(`${day}${j}`)//最终获取该列表对应的格数及位置；以备后用；
+        }
+    }
+
+    function importf(obj) {//导入文件
+        if (!obj.files || obj.files.length <= 0) {//如果onchange事件发生但是未传入文件，那么啥都不干。
+            return;
+        }
+        var f = obj.files[0];//f为读取到的文件
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var data = e.target.result;
+            if (rABS) {
+                wb = XLSX.read(btoa(fixdata(data)), {//手动转化
+                    type: 'base64'
+                });
+            } else {
+                wb = XLSX.read(data, {
+                    type: 'binary'
+                });
+            }
+            //wb.SheetNames[0]是获取Sheets中第一个Sheet的名字
+            //wb.Sheets[Sheet名]获取第一个Sheet的数据
+            // var jsonText = JSON.stringify(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+            values = [];
+            for (var i = 0; i < weekDay.length; i++) {//遍历查找weekDay数组中的数据，组成新数据数组得到最终值values
+                if (wb.Sheets[wb.SheetNames[week]][weekDay[i]]) {
+                    var cellValue = wb.Sheets[wb.SheetNames[week]][weekDay[i]].v;//
+                    values.push(`"${cellValue}"`)
+                } else {
+                    continue
+                }
+            }
+            // console.log(values);
+            var textArea = document.getElementById('textArea');
+            textArea.value = `[${values}]`
+            obj.value = ''
+        };
+        if (rABS) {
+            reader.readAsArrayBuffer(f);
+        } else {
+            reader.readAsBinaryString(f);
+        }
+    }
+
+    function fixdata(data) { //文件流转BinaryString
+        var o = "",
+            l = 0,
+            w = 10240;
+        for (; l < data.byteLength / w; ++l) o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w, l * w + w)));
+        o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)));
+        return o;
+    }
+
+    function copy() {//这个方法完成复制数据功能
+        var textArea = document.getElementById('textArea');
+        textArea.select(); // 选择对象
+        document.execCommand("Copy"); // 执行浏览器复制命令
+        alert("复制成功");
+    }
+</script>
+</body>
+</html>
+
