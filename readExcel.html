@@ -88,7 +88,87 @@
             }
             // console.log(values);
             var textArea = document.getElementById('textArea');
-            textArea.value = `[${values}]`
+            textArea.value = `var list =[${values}]
+var check;
+var index = -1;
+var notFond = [];
+// var firstNotWant = [];
+var checkList;
+var tds;
+var innerTexts = [];
+var checkBoxIndex = -1;
+
+var insert_fun = function () {
+    if (index >= list.length - 1) {
+        window.clearInterval(window.third);
+        if (notFond.length > 0 ) {
+            alert(\`
+        没查询到的条目为___\${notFond}__,
+        请手动处理
+        \`)
+        }
+        return
+    } else {
+        index += 1;
+    }
+    var sucaiku_lanmuName = document.getElementById("sucaiku_lanmuName");//名称输入框
+    sucaiku_lanmuName.value = list[index];//向input框输入值
+    var lis = document.getElementsByClassName("marginleft5")[22];//找到查询按钮
+    lis.childNodes[0].click();//查询按钮完成点击查询事件
+
+    window.firstTime = window.setTimeout(function () {//异步延迟查询结果渲染完成
+        window.clearTimeout(window.firstTime);//清除上次的定时器
+        checkList = document.getElementsByName("sczhuanMaCheckBox");
+        if (checkList.length <= 0) {
+            notFond.push(list[index]);
+            clearInterval(window.firstTime);
+            checkBoxIndex = -1;
+            innerTexts = [];
+            return  //如果没有找到该项，把该项的名称放到notFound 数组中，并且跳过本次操作
+        } else {
+            tds = document.getElementsByClassName('textOverflow1');
+            for (var i = 0; i < tds.length; i++) {
+                var curTd = tds[i];
+                var curText = curTd.childNodes[0].innerText;
+                innerTexts.push(curText);
+            }
+            for (var i = 0; i < innerTexts.length; i++) {
+                if (innerTexts[i] === list[index]) {
+                    checkBoxIndex = i;
+                    break;
+                } else {
+                    continue
+                }
+            }
+            if (checkBoxIndex == -1) {
+                // firstNotWant.push(list[index])
+                notFond.push(list[index]);
+                clearInterval(window.firstTime);
+                checkBoxIndex = -1;
+                innerTexts = [];
+                return
+            }
+        }
+        check = document.getElementsByName("sczhuanMaCheckBox")[checkBoxIndex];//查找结果的第一项的checkBox盒子；
+        console.log(checkBoxIndex);
+        console.log(check);
+        check.checked = true;//设置为选取状态
+        var insert = document.getElementById("qx_sckinsertbobiao")//找到插入播表的按钮
+        insert.click();//播表按钮触发点击事件
+        window.secondTiem = setTimeout(function () {//延迟等待遮罩层出现
+            window.clearTimeout(window.secondTiem);//清除上次定时器
+            var yes = document.getElementById("popup_ok");//找到遮罩层的确认按钮
+            yes.click();//点击遮罩层的ok，遮罩层消失，下次列表查询开始
+
+            checkBoxIndex = -1;
+            innerTexts = [];
+
+        }, 500)
+
+    }, 500)
+};
+window.third = window.setInterval(insert_fun, 3000)
+`
             obj.value = ''
         };
         if (rABS) {
@@ -111,7 +191,10 @@
         var textArea = document.getElementById('textArea');
         textArea.select(); // 选择对象
         document.execCommand("Copy"); // 执行浏览器复制命令
-        alert("复制成功");
+       alert("复制成功");
+        window.location.href='http://6.2.10.22:8080/jsp/bobiao.jsp'
+        // window.location.href='https://www.baidu.com/'
+
     }
 </script>
 </body>
